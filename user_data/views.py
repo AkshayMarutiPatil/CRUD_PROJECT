@@ -94,39 +94,30 @@ def delete(request):
     else:
         return JsonResponse({"message": "Record Does Not Exist", "status": 200, "responce": []})
 
-    # re = request.data
-    #
-    # check_type_1 = CrudModel.objects.filter(id=re['id']).exists()
-    # if check_type_1:
-    #     record = CrudModel.objects.get(id=re['id'])
-    #     record.delete()
-    #     return JsonResponse({"message": "Record Deleted"})
-    # else:
-    #     return JsonResponse({"message": "Record Does Not Exist", "status": 200, "responce": []})
 
-@api_view(['GET'])
-def StudentList(request):
-    paginator=PageNumberPagination()
+@api_view(['POST'])
+def StudentProfessorList(request):
+    re=request.data
+    user_type=re['user_type']
+    print(user_type)
+    paginator = PageNumberPagination()
     paginator.page_size=2
-    student_object=StudentModel.objects.all().order_by('-user_id')
-    #print(student_object)
-    # stu=[]
-    # for i in student_object:
-    #     stu.extend([i.full_name,i.city,i.gender])
+    if user_type=="STUDENT":
+        student_object = StudentModel.objects.all().order_by('-user_id')
+        result_page = paginator.paginate_queryset(student_object, request)
+        serializer=StudentListSerializer(result_page,many=True)
+        return paginator.get_paginated_response(serializer.data)
+    elif user_type=="PROFESSOR":
+        professor_object = Professor.objects.all().order_by('-user_id')
+        result_page=paginator.paginate_queryset(professor_object,request)
+        serializer=ProfessorListSerializer(result_page,many=True)
+        return paginator.get_paginated_response(serializer.data)
+    else:
+        return JsonResponse({"message":"Record Does Not Exist"})
 
 
-    result_page=paginator.paginate_queryset(student_object,request)
-    serializer=StudentListSerializer(result_page,many=True)
-    return paginator.get_paginated_response(serializer.data)
 
-@api_view(['GET'])
-def ProfessorList(request):
-    paginator=PageNumberPagination()
-    paginator.page_size=2
-    professor_object=Professor.objects.all()
-    result_page=paginator.paginate_queryset(professor_object,request)
-    serializer=ProfessorListSerializer(result_page,many=True)
-    return paginator.get_paginated_response(serializer.data)
+
 
 
 
